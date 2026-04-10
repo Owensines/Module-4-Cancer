@@ -8,9 +8,9 @@ import seaborn as sns
 # Load the data
 ####################################################
 data = pd.read_csv(
-    '../Data/TRAINING_SET_GSE62944_subsample_log2TPM.csv', index_col=0, header=0)  # can also use larger dataset with more genes
+    r'C:\Users\Lauren McElfresh\Documents\GitHub\Module-4-Cancer\data\TRAINING_SET_GSE62944_subsample_log2TPM.csv', index_col=0, header=0)  # can also use larger dataset with more genes
 metadata_df = pd.read_csv(
-    '../Data/TRAINING_SET_GSE62944_metadata.csv', index_col=0, header=0)
+    r'C:\Users\Lauren McElfresh\Documents\GitHub\Module-4-Cancer\data\TRAINING_SET_GSE62944_metadata.csv', index_col=0, header=0)
 print(data.head())
 
 # %%
@@ -100,3 +100,12 @@ plt.title("MYC and EGFR Expression in BRCA Samples")
 plt.show()
 
 # %%
+
+
+genes_to_check = ["MYC", "RAS", "EGFR", "PIK3CA", "BRAF", "HER2", "CTNNB1", "STAT3"]
+
+for gene in genes_to_check:
+    if gene in data.index:
+        print(f"{gene}: found")
+    else:
+        print(f"{gene}: NOT found")
