@@ -1,50 +1,66 @@
-# Filters data
 from matplotlib import pyplot as plt
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score
+from sklearn.metrics import accuracy_score
+import joblib
 
 
-
+# Load data
 meta = pd.read_csv(r'data\TRAINING_SET_GSE62944_metadata.csv')
-expr = pd.read_csv(r'data\TRAINING_SET_GSE62944_subsample_log2TPM.csv', index_col=0) 
+expr = pd.read_csv(r'data\TRAINING_SET_GSE62944_subsample_log2TPM.csv', index_col=0)
 
+# Filter LUAD + LUSC
+meta = meta[meta['cancer_type'].isin(['LUSC'])]
 
+# transpose expression matrix (samples as rows)
+expr = expr.T
 
-# Filter for lung cancer types LUAD and LUSC
-meta = meta[meta['cancer_type'].isin(['LUAD', 'LUSC'])]
-expr = expr.T # transpose to have samples as rows
-
-
-
+# Genes
 my_genes = [
-    'CD274', 'CTLA4', 'LAG3', 'HLA-A', 'B2M', 'STAT3', 
+    'CD274', 'CTLA4', 'LAG3', 'HLA-A', 'B2M', 'STAT3',
     'TGFB1', 'MYC', 'EGFR', 'PIK3CA', 'BRAF', 'CTNNB1',
     'PTEN', 'TP53', 'STK11', 'RB1', 'SMAD4', 'APC', 'ATM'
 ]
 
+# Build dataset
 X_data = expr[my_genes]
 df = X_data.join(meta.set_index('sample'), how='inner')
 
-labels = ['cancer_type', 'ajcc_pathologic_tumor_stage']
-df_clean = df[my_genes + labels]
+# Clean stage labels
+df = df.dropna(subset=['ajcc_pathologic_tumor_stage'])
 
-# model
-# defines x and y
-X = df_clean[my_genes]
-y = df_clean['cancer_type']
+def simplify_stage(stage):
+    if pd.isna(stage):
+        return None
+    stage = str(stage).upper()
 
-# logistic regression
-model = LogisticRegression(max_iter=1000)
+    if "I" in stage and "II" not in stage and "III" not in stage and "IV" not in stage:
+        return "I"
+    elif "II" in stage and "III" not in stage and "IV" not in stage:
+        return "II"
+    elif "III" in stage and "IV" not in stage:
+        return "III"
+    elif "IV" in stage:
+        return "IV"
+    else:
+        return None
+
+df["stage"] = df["ajcc_pathologic_tumor_stage"].apply(simplify_stage)
+df = df.dropna(subset=["stage"])
+
+# Features and target
+X = df[my_genes]
+y = df["stage"]
+
+# Model
+model = LogisticRegression(max_iter=2000)
 model.fit(X, y)
 
-# in sample error (training dataset)
-y_train_pred = model.predict(X)
-train_acc = accuracy_score(y, y_train_pred)
+# Training accuracy
+y_pred = model.predict(X)
+acc = accuracy_score(y, y_pred)
 
+print(f"In-sample Accuracy (Stage Prediction): {acc:.2f}")
 
-print(f"In-sample Accuracy (Training): {train_acc:.2f}")
-
-# saves model
-import joblib
-joblib.dump(model, 'lung_cancer_model.pkl')
+# Save model
+joblib.dump(model, "lung_stage_model.pkl")
