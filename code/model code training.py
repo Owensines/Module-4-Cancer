@@ -10,7 +10,7 @@ meta = pd.read_csv(r'data\TRAINING_SET_GSE62944_metadata.csv')
 expr = pd.read_csv(r'data\TRAINING_SET_GSE62944_subsample_log2TPM.csv', index_col=0)
 
 # Filter LUAD + LUSC
-meta = meta[meta['cancer_type'].isin(['LUSC'])]
+meta = meta[meta['cancer_type'].isin(['LUAD', 'LUSC'])]
 
 # transpose expression matrix (samples as rows)
 expr = expr.T
