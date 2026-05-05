@@ -61,3 +61,27 @@ print(f"In-sample Accuracy (Early vs Late Prediction): {acc:.2f}")
 
 # Save model
 joblib.dump(model, "lung_stage_model_binary.pkl")
+
+from sklearn.metrics import ConfusionMatrixDisplay
+
+# ... (rest of your existing code)
+
+print(f"In-sample Accuracy (Early vs Late Prediction): {acc:.2f}")
+
+# --- ADD THIS PART ---
+# Generate and show the confusion matrix
+fig, ax = plt.subplots(figsize=(6, 5))
+ConfusionMatrixDisplay.from_estimator(
+    model, 
+    X, 
+    y, 
+    display_labels=["early", "late"], 
+    cmap=plt.cm.Blues, 
+    ax=ax
+)
+ax.set_title("Confusion Matrix (Training Set - Binary)")
+plt.show()
+# ---------------------
+
+# Save model
+joblib.dump(model, "lung_stage_model_binary.pkl")
